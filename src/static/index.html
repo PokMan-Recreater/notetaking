@@ -458,11 +458,154 @@
         .notes-list::-webkit-scrollbar-thumb:hover {
             background: #5a6fd8;
         }
+
+        /* ===== Dark mode ===== */
+        .dark-mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 14px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            background: rgba(0, 0, 0, 0.45);
+            transform: translateY(-1px);
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .sidebar,
+        body.dark-mode .note-editor {
+            background: rgba(30, 30, 46, 0.95);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        body.dark-mode .header {
+            color: #ffffff;
+        }
+
+        body.dark-mode .search-box {
+            background: #232338;
+            border-color: #3a3a55;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .search-box::placeholder {
+            color: #8a8aa0;
+        }
+
+        body.dark-mode .search-box:focus {
+            border-color: #7c8cf8;
+        }
+
+        body.dark-mode .note-item {
+            background: #26263d;
+        }
+
+        body.dark-mode .note-item:hover {
+            background: #2e2e48;
+        }
+
+        body.dark-mode .note-item.active {
+            background: #33335a;
+            border-color: #7c8cf8;
+        }
+
+        body.dark-mode .note-title {
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .note-preview {
+            color: #b0b0c0;
+        }
+
+        body.dark-mode .note-date {
+            color: #8a8aa0;
+        }
+
+        body.dark-mode .note-word-count {
+            color: #9aa4ff;
+            background: rgba(124, 140, 248, 0.2);
+        }
+
+        body.dark-mode .form-input,
+        body.dark-mode .form-textarea {
+            background: #232338;
+            border-color: #3a3a55;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .form-input::placeholder,
+        body.dark-mode .form-textarea::placeholder {
+            color: #8a8aa0;
+        }
+
+        body.dark-mode .form-label {
+            color: #b0b0c0;
+        }
+
+        body.dark-mode .editor-title {
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .translation-panel {
+            background: #232338;
+            border-color: #3a6a7a;
+        }
+
+        body.dark-mode .translation-header h3 {
+            color: #9fd8e2;
+        }
+
+        body.dark-mode .translation-output {
+            background: #1a1a2e;
+            border-color: #3a3a55;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .translate-radio {
+            background: #26263d;
+            border-color: #3a6a7a;
+            color: #9fd8e2;
+        }
+
+        body.dark-mode .translate-radio:hover {
+            background: #2e2e48;
+        }
+
+        body.dark-mode .empty-state {
+            color: #b0b0c0;
+        }
+
+        body.dark-mode .success {
+            background: #12351f;
+            color: #8ce6a8;
+        }
+
+        body.dark-mode .error {
+            background: #3a1a1a;
+            color: #f0a0a0;
+        }
+
+        body.dark-mode .loading {
+            color: #9aa4ff;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <button class="dark-mode-toggle" id="darkModeToggle">🌙 Dark Mode</button>
             <h1>📝 NoteTaker</h1>
             <p>Organize your thoughts, capture your ideas</p>
         </div>
@@ -552,7 +695,27 @@
 
             async init() {
                 this.bindEvents();
+                this.initDarkMode();
                 await this.loadNotes();
+            }
+
+            initDarkMode() {
+                const stored = localStorage.getItem('notetaking-dark-mode');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                this.isDarkMode = stored !== null ? stored === 'true' : prefersDark;
+                this.applyDarkMode();
+            }
+
+            applyDarkMode() {
+                document.body.classList.toggle('dark-mode', this.isDarkMode);
+                const btn = document.getElementById('darkModeToggle');
+                if (btn) btn.textContent = this.isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
+            }
+
+            toggleDarkMode() {
+                this.isDarkMode = !this.isDarkMode;
+                localStorage.setItem('notetaking-dark-mode', String(this.isDarkMode));
+                this.applyDarkMode();
             }
 
             bindEvents() {
@@ -563,6 +726,7 @@
                 document.getElementById('applyTranslationBtn').addEventListener('click', () => this.applyTranslation());
                 document.getElementById('dismissTranslationBtn').addEventListener('click', () => this.hideTranslation());
                 document.getElementById('searchBox').addEventListener('input', (e) => this.searchNotes(e.target.value));
+                document.getElementById('darkModeToggle').addEventListener('click', () => this.toggleDarkMode());
                 
                 // Auto-save on content change (debounced). Saves both new and
                 // existing notes once there is any content, so work is never lost.
