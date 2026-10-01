@@ -171,6 +171,23 @@ The application is configured for easy deployment with:
 - Production-ready Flask configuration
 - Persistent PostgreSQL database via Neon (or SQLite fallback)
 
+## ▲ Deploy to Vercel
+
+The app is configured to run as a serverless function on Vercel. The Flask
+app is exposed through `wsgi.py` and `pyproject.toml` points Vercel to it.
+
+1. Push this repository to GitHub.
+2. In [Vercel](https://vercel.com), **Add New → Project** and import the repo.
+3. Vercel auto-detects the **Flask** framework (via `requirements.txt` + `pyproject.toml`).
+4. Add the following **Environment Variables** in the project settings:
+   - `DATABASE_URL` — your Neon PostgreSQL connection string
+   - `SECRET_KEY` — any long random string
+5. Deploy. On the first request, the app connects to Neon and creates the tables.
+
+> ⚠️ Use the **direct** (non-pooler) Neon connection string for serverless
+> functions, or the pooler string — both work. Note that the free tier may
+> suspend an idle database, so the first request after idle may be slower.
+
 ## 🔧 Configuration
 
 ### Environment Variables
