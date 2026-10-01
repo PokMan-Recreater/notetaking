@@ -564,12 +564,15 @@
                 document.getElementById('dismissTranslationBtn').addEventListener('click', () => this.hideTranslation());
                 document.getElementById('searchBox').addEventListener('input', (e) => this.searchNotes(e.target.value));
                 
-                // Auto-save on content change (debounced)
+                // Auto-save on content change (debounced). Saves both new and
+                // existing notes once there is any content, so work is never lost.
                 let saveTimeout;
                 const autoSave = () => {
                     clearTimeout(saveTimeout);
                     saveTimeout = setTimeout(() => {
-                        if (this.currentNote && this.currentNote.id) {
+                        const title = document.getElementById('noteTitle').value.trim();
+                        const content = document.getElementById('noteContent').value.trim();
+                        if (this.currentNote && (title || content)) {
                             this.saveNote(true);
                         }
                     }, 2000);
@@ -605,17 +608,21 @@
                     return;
                 }
 
-                notesList.innerHTML = this.notes.map(note => `
+                notesList.innerHTML = this.notes.map(note => {
+                    const words = this.countWords(note);
+                    const wordBadge = words > 0 ? `<div class="note-word-count">${words} ${words === 1 ? 'word' : 'words'}</div>` : '';
+                    return `
                     <div class="note-item ${this.currentNote && this.currentNote.id === note.id ? 'active' : ''}" 
                          data-note-id="${note.id}" onclick="noteTaker.selectNote(${note.id})">
                         <div class="note-title">${this.escapeHtml(this.truncate(note.title || 'Untitled', 30))}</div>
                         <div class="note-preview">${this.escapeHtml(this.truncate(note.content || 'No content', 16))}</div>
                         <div class="note-meta">
                             <div class="note-date">${this.formatDate(note.updated_at)}</div>
-                            <div class="note-word-count">${this.countWords(note)} words</div>
+                            ${wordBadge}
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             }
 
             async selectNote(noteId) {
@@ -833,17 +840,21 @@
                     return;
                 }
 
-                notesList.innerHTML = filteredNotes.map(note => `
+                notesList.innerHTML = filteredNotes.map(note => {
+                    const words = this.countWords(note);
+                    const wordBadge = words > 0 ? `<div class="note-word-count">${words} ${words === 1 ? 'word' : 'words'}</div>` : '';
+                    return `
                     <div class="note-item ${this.currentNote && this.currentNote.id === note.id ? 'active' : ''}" 
                          data-note-id="${note.id}" onclick="noteTaker.selectNote(${note.id})">
                         <div class="note-title">${this.escapeHtml(this.truncate(note.title || 'Untitled', 30))}</div>
                         <div class="note-preview">${this.escapeHtml(this.truncate(note.content || 'No content', 16))}</div>
                         <div class="note-meta">
                             <div class="note-date">${this.formatDate(note.updated_at)}</div>
-                            <div class="note-word-count">${this.countWords(note)} words</div>
+                            ${wordBadge}
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             }
 
             showMessage(message, type) {
