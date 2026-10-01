@@ -3,7 +3,7 @@ name = "notetaking"
 version = "1.0.0"
 description = "Personal note management application"
 requires-python = ">=3.12"
-
-[tool.vercel]
-# Point Vercel to the Flask app instance in src/main.py.
-entrypoint = "wsgi:app"
+dependencies = [
+    "flask>=3.1,<4.0",
+    "gunicorn~=23.0.0",
+]
