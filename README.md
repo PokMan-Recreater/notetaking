@@ -8,6 +8,7 @@ A modern, responsive web application for managing personal notes with a beautifu
 - **Edit Notes**: Update existing notes with real-time editing
 - **Delete Notes**: Remove notes you no longer need
 - **Search Notes**: Find notes quickly by searching titles and content
+- **Translate Notes**: Translate note titles and content to Traditional Chinese, Simplified Chinese, Korean, or Japanese
 - **Auto-save**: Notes are automatically saved as you type
 - **Responsive Design**: Works perfectly on desktop and mobile devices
 - **Modern UI**: Beautiful gradient design with smooth animations
@@ -30,7 +31,8 @@ The application is deployed and accessible at: **https://3dhkilc88dkk.manus.spac
 - **Flask-CORS**: Cross-origin resource sharing support
 
 ### Database
-- **SQLite**: Lightweight, file-based database for data persistence
+- **Neon**: Serverless PostgreSQL database (primary)
+- **SQLite**: Local file-based fallback for development when `DATABASE_URL` is not set
 
 ## 📁 Project Structure
 
@@ -97,6 +99,24 @@ notetaking-app/
 - `DELETE /api/notes/<id>` - Delete a note
 - `GET /api/notes/search?q=<query>` - Search notes
 
+### Translation API
+- `POST /api/translate` - Translate text to another language
+
+Request body:
+```json
+{
+  "title": "Hello",
+  "content": "How are you today?",
+  "target": "zh-TW"
+}
+```
+
+Supported `target` values:
+- `zh-TW` - Traditional Chinese (default)
+- `zh-CN` - Simplified Chinese
+- `ko` - Korean
+- `ja` - Japanese
+
 ### Request/Response Format
 ```json
 {
@@ -149,18 +169,26 @@ The application is configured for easy deployment with:
 - CORS enabled for cross-origin requests
 - Host binding to `0.0.0.0` for external access
 - Production-ready Flask configuration
-- Persistent SQLite database
+- Persistent PostgreSQL database via Neon (or SQLite fallback)
 
 ## 🔧 Configuration
 
 ### Environment Variables
-- `FLASK_ENV`: Set to `development` for debug mode
+- `DATABASE_URL`: Neon (or any PostgreSQL) connection string. When set, the app uses PostgreSQL; otherwise it falls back to a local SQLite file.
 - `SECRET_KEY`: Flask secret key for sessions
+- `FLASK_ENV`: Set to `development` for debug mode
 
-### Database Configuration
-- Database file: `src/database/app.db`
-- Automatic table creation on first run
-- SQLAlchemy ORM for database operations
+### Database Configuration (Neon)
+1. Create a free project at [neon.tech](https://neon.tech).
+2. Copy the connection string from **Connect → SQLAlchemy/psql**.
+3. Create a `.env` file in the project root (copy from `.env.example`) and set:
+   ```
+   DATABASE_URL=postgresql://user:password@ep-xxxx.us-east-2.aws.neon.tech/neondb?sslmode=require
+   ```
+4. Restart the app — tables are created automatically on startup via SQLAlchemy.
+
+> The `.env` file is git-ignored so your credentials are never committed.
+
 
 ## 📱 Browser Compatibility
 
