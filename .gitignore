@@ -75,6 +75,7 @@ venv.bak/
 
 # pyenv
 .python-version
+!.python-version
 
 # pipenv
 Pipfile.lock
