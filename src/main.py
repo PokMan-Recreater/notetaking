@@ -30,9 +30,14 @@ app.register_blueprint(translate_bp, url_prefix='/api')
 # connection string), use it; otherwise fall back to a local SQLite file.
 ROOT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
+IS_VERCEL = os.environ.get('VERCEL', '') == '1'
 
 if DATABASE_URL:
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+elif IS_VERCEL:
+    # Vercel's filesystem is read-only, so SQLite can't be used there.
+    # Serve the app anyway; the /api routes will surface a clear error.
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 else:
     DB_PATH = os.path.join(ROOT_DIR, 'database', 'app.db')
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -40,8 +45,25 @@ else:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
-with app.app_context():
-    db.create_all()
+
+# Create tables, but don't let a database/connection problem crash the whole
+# app at import time (which would make every request return 500).
+try:
+    with app.app_context():
+        db.create_all()
+except Exception as e:  # noqa: BLE001
+    app.logger.error("Database initialization failed: %s", e)
+
+
+@app.route('/api/health')
+def health():
+    """Simple health check that also reports database connectivity."""
+    try:
+        db.session.execute(db.text('SELECT 1'))
+        db_ok = True
+    except Exception:
+        db_ok = False
+    return {'status': 'ok', 'database': db_ok, 'database_uri': app.config['SQLALCHEMY_DATABASE_URI'].split('@')[-1]}
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
